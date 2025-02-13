@@ -1,51 +1,157 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="heart.png" type="image/png">
-    <title>Per Melania</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: pink;
-            flex-direction: column;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        h1 {
-            font-size: 2em;
-            color: red;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 1.2em;
-            background-color: transparent;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        button:hover {
-            transform: scale(1.1);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="heart.png" type="image/png">
+  <title>Raccogli i cuori! ❤️</title>
+  <style>
+    body {
+      background-color: #fce1f2;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 80%;
+      max-width: 600px;
+      border: 2px solid #ff4d4d;
+      background-color: #fff;
+      overflow: hidden;
+    }
+    #basket {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 60px;
+      background-color: #ff4d4d;
+      border-radius: 10px;
+    }
+    .heart {
+      position: absolute;
+      top: -50px;
+      font-size: 3em;  /* Dimensione maggiore per una migliore visibilità */
+      animation: fall 5s linear forwards;
+    }
+    @keyframes fall {
+      from { top: -50px; }
+      to { top: 100%; }
+    }
+    #score {
+      font-size: 1.5em;
+      color: #ff4d4d;
+      margin-top: 20px;
+    }
+    #start-button {
+      padding: 10px 20px;
+      font-size: 1.2em;
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
+  <div id="game-container">
+    <div id="basket"></div>
+  </div>
+  <div id="score">Punti: 0</div>
+  <button id="start-button">Inizia il gioco</button>
 
-    <h1>Ciao Melania! C'è un regalo per te!</h1>
-    <h1>Clicca sul regalo per scoprire di cosa si tratta!</h1>
-    <button id="loveButton">🎁</button>
+  <script>
+    const basket = document.getElementById('basket');
+    const scoreDisplay = document.getElementById('score');
+    const startButton = document.getElementById('start-button');
+    const gameContainer = document.getElementById('game-container');
+    
+    let score = 0;
+    let gameStarted = false;
+    let heartInterval, collisionInterval;
 
-    <script>
-        document.getElementById("loveButton").addEventListener("click", function() {
-            alert("Anche se in ritardo, auguri di buon anniversario ❤️");
-        });
-    </script>
+    // Funzione per generare un cuore in posizione casuale
+    function generateHeart() {
+      const heart = document.createElement('div');
+      heart.classList.add('heart');
+      heart.style.left = `${Math.random() * (gameContainer.offsetWidth - 50)}px`;
+      heart.textContent = "❤️";
+      gameContainer.appendChild(heart);
+    }
+
+    // Funzione che controlla se un cuore ha "colpito" il cestino
+    function checkCollision() {
+      const basketRect = basket.getBoundingClientRect();
+      const containerRect = gameContainer.getBoundingClientRect();
+      const hearts = document.querySelectorAll('.heart');
+      hearts.forEach(heart => {
+        const heartRect = heart.getBoundingClientRect();
+        // Se il cuore è all'interno del cestino
+        if (
+          heartRect.bottom >= basketRect.top &&
+          heartRect.top <= basketRect.bottom &&
+          heartRect.left >= basketRect.left &&
+          heartRect.right <= basketRect.right
+        ) {
+          score++;
+          scoreDisplay.textContent = `Punti: ${score}`;
+          heart.remove();
+        } else if (heartRect.top > containerRect.bottom) {
+          // Se il cuore è uscito dal contenitore
+          heart.remove();
+        }
+      });
+    }
+
+    // Funzione per muovere il cestino; calcola la posizione relativa al contenitore
+    function moveBasket(clientX) {
+      const basketWidth = basket.offsetWidth;
+      const containerRect = gameContainer.getBoundingClientRect();
+      let relativeX = clientX - containerRect.left; // coordinata relativa al contenitore
+      const containerWidth = gameContainer.offsetWidth;
+      if (relativeX - basketWidth / 2 < 0) {
+        relativeX = basketWidth / 2;
+      }
+      if (relativeX + basketWidth / 2 > containerWidth) {
+        relativeX = containerWidth - basketWidth / 2;
+      }
+      basket.style.left = `${relativeX - basketWidth / 2}px`;
+    }
+
+    // Avvio del gioco
+    function startGame() {
+      if (!gameStarted) {
+        gameStarted = true;
+        score = 0;
+        scoreDisplay.textContent = `Punti: ${score}`;
+        startButton.style.display = 'none';
+        heartInterval = setInterval(generateHeart, 1500); // Genera un cuore ogni 1.5 secondi
+        collisionInterval = setInterval(checkCollision, 50); // Controlla collisioni ogni 50ms
+      }
+    }
+
+    startButton.addEventListener('click', startGame);
+    
+    // Eventi per desktop
+    document.addEventListener('mousemove', function(e) {
+      moveBasket(e.clientX);
+    });
+    
+    // Eventi per mobile
+    document.addEventListener('touchmove', function(e) {
+      const touch = e.touches[0];
+      moveBasket(touch.clientX);
+    });
+  </script>
 </body>
 </html>

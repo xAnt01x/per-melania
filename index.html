@@ -11,6 +11,10 @@
     <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js"></script>
 
     <style>
+        html {
+            overflow: hidden;
+        }
+
         body {
             background-color: #fce1f2;
             font-family: Arial, sans-serif;
@@ -68,7 +72,6 @@
         #best-melania {
             font-size: 1.5em;
             color: #ff4d4d;
-            margin-top: 20px;
         }
 
         #start-button {
@@ -79,12 +82,13 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
-            margin-top: 10px;
         }
 
         /* Stile per i bottoni di scelta giocatore */
         #choose-player-container {
             margin-top: 50px;
+            display: flex;
+            flex-direction: row;
         }
 
         .player-button {
@@ -101,6 +105,35 @@
         .player-button:hover {
             background-color: #e57373;
         }
+
+        /* Per dispositivi mobile */
+        @media (max-width: 768px) {
+            #game-container {
+                width: 100%;
+                /* Assicurati che occupi tutta la larghezza disponibile */
+                box-sizing: border-box;
+                /* Per evitare overflow non voluti */
+            }
+
+            #score {
+                font-size: 1.2em;
+            }
+
+            #best-anthony,
+            #best-melania {
+                font-size: 1.2em;
+            }
+
+            #start-button {
+                font-size: 1em;
+            }
+
+            .player-button {
+                font-size: 1.2em;
+            }
+
+            /* Altre personalizzazioni che puoi fare per adattare la visualizzazione */
+        }
     </style>
 </head>
 
@@ -116,17 +149,17 @@
             <button id="choose-anthony" class="player-button">Anthony</button>
             <button id="choose-melania" class="player-button">Melania</button>
         </div>
-        <div style="width: 100%;">
+        <div style="width: 200%;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h1 id="current-user" style="margin: 0px; margin-top: 10px;"></h1>
                 <div id="score"></div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: end;">
-                <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                <div style="display: flex; flex-direction: column; gap: 10px;">
                     <div id="best-anthony"></div>
                     <div id="best-melania"></div>
                 </div>
-                <button id="start-button" style="display: none;">Inizia il gioco</button>
+                <button id="start-button" style="display: none;">Inizia!</button>
             </div>
         </div>
     </div>
@@ -155,6 +188,9 @@
         const gameContainer = document.getElementById('game-container');
         const pickupSound = document.getElementById('pickup-sound');
 
+        let startX = 0;
+        let isTouching = false;
+
         let score = 0;
         let bestScore = 0;
         let gameStarted = false;
@@ -165,7 +201,7 @@
 
         function chooseUser() {
             // Mostra i bottoni per scegliere il giocatore
-            document.getElementById('choose-player-container').style.display = 'block';
+            document.getElementById('choose-player-container').style.display = 'flex';
             document.getElementById('current-user').style.display = 'block';
 
             // Aggiungi gli event listener per i bottoni
@@ -332,7 +368,7 @@
                 updateBestScore();
             }
             alert(`Dai ${currentUser}, ce la puoi fare a superare ${currentUser === "Melania" ? "Anthony" : "Melania"}, sempre se non ce l'hai già fatta! Su, riprova!`);
-            startButton.textContent = "Riprova";
+            startButton.textContent = "Riprova!";
             startButton.style.display = 'block';
 
             loadScores();

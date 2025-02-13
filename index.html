@@ -1,157 +1,398 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="heart.png" type="image/png">
-  <title>Raccogli i cuoricini!</title>
-  <style>
-    body {
-      background-color: #fce1f2;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-    #game-container {
-      position: relative;
-      width: 100%;
-      height: 80%;
-      max-width: 600px;
-      border: 2px solid #ff4d4d;
-      background-color: #fff;
-      overflow: hidden;
-    }
-    #basket {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100px;
-      height: 60px;
-      background-color: #ff4d4d;
-      border-radius: 10px;
-    }
-    .heart {
-      position: absolute;
-      top: -50px;
-      font-size: 3em;  /* Dimensione maggiore per una migliore visibilità */
-      animation: fall 5s linear forwards;
-    }
-    @keyframes fall {
-      from { top: -50px; }
-      to { top: 100%; }
-    }
-    #score {
-      font-size: 1.5em;
-      color: #ff4d4d;
-      margin-top: 20px;
-    }
-    #start-button {
-      padding: 10px 20px;
-      font-size: 1.2em;
-      background-color: #ff4d4d;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-  <div id="game-container">
-    <div id="basket"></div>
-  </div>
-  <div id="score">Punti: 0</div>
-  <button id="start-button">Inizia il gioco</button>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="heart.png" type="image/png">
+    <title>Raccogli i cuori! ❤️</title>
 
-  <script>
-    const basket = document.getElementById('basket');
-    const scoreDisplay = document.getElementById('score');
-    const startButton = document.getElementById('start-button');
-    const gameContainer = document.getElementById('game-container');
-    
-    let score = 0;
-    let gameStarted = false;
-    let heartInterval, collisionInterval;
+    <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js"></script>
 
-    // Funzione per generare un cuore in posizione casuale
-    function generateHeart() {
-      const heart = document.createElement('div');
-      heart.classList.add('heart');
-      heart.style.left = `${Math.random() * (gameContainer.offsetWidth - 50)}px`;
-      heart.textContent = "❤️";
-      gameContainer.appendChild(heart);
-    }
-
-    // Funzione che controlla se un cuore ha "colpito" il cestino
-    function checkCollision() {
-      const basketRect = basket.getBoundingClientRect();
-      const containerRect = gameContainer.getBoundingClientRect();
-      const hearts = document.querySelectorAll('.heart');
-      hearts.forEach(heart => {
-        const heartRect = heart.getBoundingClientRect();
-        // Se il cuore è all'interno del cestino
-        if (
-          heartRect.bottom >= basketRect.top &&
-          heartRect.top <= basketRect.bottom &&
-          heartRect.left >= basketRect.left &&
-          heartRect.right <= basketRect.right
-        ) {
-          score++;
-          scoreDisplay.textContent = `Punti: ${score}`;
-          heart.remove();
-        } else if (heartRect.top > containerRect.bottom) {
-          // Se il cuore è uscito dal contenitore
-          heart.remove();
+    <style>
+        body {
+            background-color: #fce1f2;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
-      });
-    }
 
-    // Funzione per muovere il cestino; calcola la posizione relativa al contenitore
-    function moveBasket(clientX) {
-      const basketWidth = basket.offsetWidth;
-      const containerRect = gameContainer.getBoundingClientRect();
-      let relativeX = clientX - containerRect.left; // coordinata relativa al contenitore
-      const containerWidth = gameContainer.offsetWidth;
-      if (relativeX - basketWidth / 2 < 0) {
-        relativeX = basketWidth / 2;
-      }
-      if (relativeX + basketWidth / 2 > containerWidth) {
-        relativeX = containerWidth - basketWidth / 2;
-      }
-      basket.style.left = `${relativeX - basketWidth / 2}px`;
-    }
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 80%;
+            max-width: 600px;
+            border: 2px solid #ff4d4d;
+            background-color: #fff;
+            overflow: hidden;
+        }
 
-    // Avvio del gioco
-    function startGame() {
-      if (!gameStarted) {
-        gameStarted = true;
-        score = 0;
-        scoreDisplay.textContent = `Punti: ${score}`;
-        startButton.style.display = 'none';
-        heartInterval = setInterval(generateHeart, 1500); // Genera un cuore ogni 1.5 secondi
-        collisionInterval = setInterval(checkCollision, 50); // Controlla collisioni ogni 50ms
-      }
-    }
+        #basket {
+            position: absolute;
+            bottom: 0;
+            width: 100px;
+            height: 60px;
+            background-color: #ff4d4d;
+            border-radius: 10px;
+        }
 
-    startButton.addEventListener('click', startGame);
-    
-    // Eventi per desktop
-    document.addEventListener('mousemove', function(e) {
-      moveBasket(e.clientX);
-    });
-    
-    // Eventi per mobile
-    document.addEventListener('touchmove', function(e) {
-      const touch = e.touches[0];
-      moveBasket(touch.clientX);
-    });
-  </script>
+        .heart {
+            position: absolute;
+            top: -50px;
+            font-size: 3em;
+            animation: fall 5s linear forwards;
+        }
+
+        @keyframes fall {
+            from {
+                top: -50px;
+            }
+
+            to {
+                top: 100%;
+            }
+        }
+
+        #score {
+            font-size: 1.5em;
+            color: #ff4d4d;
+        }
+
+        #best-anthony,
+        #best-melania {
+            font-size: 1.5em;
+            color: #ff4d4d;
+            margin-top: 20px;
+        }
+
+        #start-button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        /* Stile per i bottoni di scelta giocatore */
+        #choose-player-container {
+            margin-top: 50px;
+        }
+
+        .player-button {
+            font-size: 1.5em;
+            padding: 10px 20px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+        }
+
+        .player-button:hover {
+            background-color: #e57373;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Elemento audio per l'effetto sonoro -->
+    <audio id="pickup-sound" src="pickup.mp3"></audio>
+
+    <div id="game-container">
+        <div id="basket"></div>
+    </div>
+    <div style="width: 50%; max-width: 600px; display: flex; flex-direction: column; align-items: center;">
+        <div id="choose-player-container">
+            <button id="choose-anthony" class="player-button">Anthony</button>
+            <button id="choose-melania" class="player-button">Melania</button>
+        </div>
+        <div style="width: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1 id="current-user" style="margin: 0px; margin-top: 10px;"></h1>
+                <div id="score"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: end;">
+                <div>
+                    <div id="best-anthony"></div>
+                    <div id="best-melania"></div>
+                </div>
+                <button id="start-button" style="display: none;">Inizia il gioco</button>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCFfplZHPzd-ePBH4hqzZHh_M3Mb_nnunU",
+            authDomain: "giococuori.firebaseapp.com",
+            projectId: "giococuori",
+            storageBucket: "giococuori.firebasestorage.app",
+            messagingSenderId: "249935557907",
+            appId: "1:249935557907:web:8ebd775a8fbcf0b6fb96e6",
+            measurementId: "G-33YNWP3M89"
+        };
+
+        // Inizializza Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const basket = document.getElementById('basket');
+        const scoreDisplay = document.getElementById('score');
+        const startButton = document.getElementById('start-button');
+        const gameContainer = document.getElementById('game-container');
+        const pickupSound = document.getElementById('pickup-sound');
+
+        let score = 0;
+        let bestScore = 0;
+        let gameStarted = false;
+        let heartInterval, collisionInterval;
+        let currentUser = null;
+        let heartCount = 0;
+        let heartGenerationInterval = 1000;
+
+        function chooseUser() {
+            // Mostra i bottoni per scegliere il giocatore
+            document.getElementById('choose-player-container').style.display = 'block';
+            document.getElementById('current-user').style.display = 'block';
+
+            // Aggiungi gli event listener per i bottoni
+            document.getElementById('choose-anthony').addEventListener('click', () => {
+                currentUser = 'Anthony';
+                loadScores();
+                document.getElementById('choose-player-container').style.display = 'none'; // Nasconde i bottoni
+                startButton.style.display = 'block'; // Mostra il pulsante di inizio gioco
+                document.getElementById('current-user').textContent = `${currentUser}`; // Mostra il nome dell'utente scelto
+            });
+
+            document.getElementById('choose-melania').addEventListener('click', () => {
+                currentUser = 'Melania';
+                loadScores();
+                document.getElementById('choose-player-container').style.display = 'none'; // Nasconde i bottoni
+                startButton.style.display = 'block'; // Mostra il pulsante di inizio gioco
+                document.getElementById('current-user').textContent = `${currentUser}`; // Mostra il nome dell'utente scelto
+            });
+        }
+
+        // Carica i punteggi massimi da Firebase
+        function loadScores() {
+            const users = ['Anthony', 'Melania'];
+            users.forEach(user => {
+                const userRef = doc(db, 'scores', user);
+                getDoc(userRef)
+                    .then((docSnap) => {
+                        if (docSnap.exists()) {
+                            const bestScore = docSnap.data().bestScore || 0;
+                            if (user === 'Anthony') {
+                                document.getElementById('best-anthony').textContent = `Anthony - Miglior punteggio: ${bestScore}`;
+                            } else if (user === 'Melania') {
+                                document.getElementById('best-melania').textContent = `Melania - Miglior punteggio: ${bestScore}`;
+                            }
+                        } else {
+                            console.log(`Nessun dato trovato per ${user}.`);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(`Errore nel recupero dei dati per ${user}:`, error);
+                    });
+            });
+            scoreDisplay.textContent = `Punti: ${score}`;
+        }
+
+        // Aggiorna il punteggio massimo di un utente in Firebase
+        function updateBestScore() {
+            const userRef = doc(db, 'scores', currentUser); // Recupera il riferimento per l'utente scelto
+
+            getDoc(userRef)
+                .then((docSnap) => {
+                    let currentBestScore = docSnap.exists() ? docSnap.data().bestScore : 0;
+
+                    // Se il punteggio attuale è maggiore del miglior punteggio precedente, aggiorna
+                    if (score > currentBestScore) {
+                        setDoc(userRef, { bestScore: score }, { merge: true })
+                            .then(() => {
+                                console.log(`${currentUser} - Punteggio migliore aggiornato!`);
+                            })
+                            .catch((error) => {
+                                console.error(`Errore nell'aggiornamento del punteggio per ${currentUser}:`, error);
+                            });
+                        currentBestScore = score; // Aggiorna la variabile del miglior punteggio
+                    }
+
+                    // Trova l'elemento giusto in base all'utente e aggiorna il testo
+                    const bestScoreDisplay = document.getElementById(`best-${currentUser.toLowerCase()}`);
+                    if (bestScoreDisplay) {
+                        bestScoreDisplay.textContent = `${currentUser} - Miglior punteggio: ${currentBestScore}`;
+                    }
+                })
+                .catch((error) => {
+                    console.error(`Errore nel recupero dei dati per ${currentUser}:`, error);
+                });
+        }
+
+
+        // Genera un cuore in una posizione casuale, evitando i bordi e regolando la velocità
+        function generateHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            // Imposta un margine di 50px per evitare i bordi
+            const margin = 200;
+            const availableWidth = gameContainer.offsetWidth - 2 * margin;
+            heart.style.left = `${margin + Math.random() * availableWidth}px`;
+            heart.textContent = "❤️";
+
+            // Se l'animazione finisce ed il cuore non è stato raccolto, termina il gioco
+            heart.addEventListener('animationend', () => {
+                if (gameStarted && gameContainer.contains(heart)) {
+                    heart.remove();
+                    endGame();
+                }
+            });
+
+            // Regola la durata dell'animazione: ogni 10 punti diminuisce di 0.5s, con un minimo di 1s
+            const fallDuration = Math.max(3 - Math.floor(score / 10) * 0.5, 1);
+            heart.style.animationDuration = fallDuration + "s";
+
+            gameContainer.appendChild(heart);
+        }
+
+        // Controlla le collisioni tra cuore e cestino
+        function checkCollision() {
+            const hearts = document.querySelectorAll('.heart');
+
+            hearts.forEach(heart => {
+                const tolerance = 30;
+
+                const heartRect = heart.getBoundingClientRect();
+                const basketRect = basket.getBoundingClientRect();
+
+                const expandedBasketRect = {
+                    top: basketRect.top,
+                    bottom: basketRect.bottom,
+                    left: basketRect.left - tolerance,
+                    right: basketRect.right + tolerance
+                };
+
+                // Verifica la collisione con la zona di tolleranza espansa
+                const isOverlapping =
+                    heartRect.bottom >= expandedBasketRect.top &&
+                    heartRect.top <= expandedBasketRect.bottom &&
+                    heartRect.left >= expandedBasketRect.left &&
+                    heartRect.right <= expandedBasketRect.right;
+
+                if (isOverlapping) {
+                    score++;
+                    scoreDisplay.textContent = `Punti: ${score}`;
+                    // Riproduce l'effetto sonoro
+                    pickupSound.currentTime = 0;
+                    pickupSound.play();
+                    heart.remove();
+
+                    heartCount++; // Incrementa il contatore di cuori
+
+                    // Ogni 10 cuori, riduci la velocità di generazione (aumenta la frequenza)
+                    if (heartCount % 10 === 0) {
+                        heartGenerationInterval = Math.max(300, heartGenerationInterval - 100); // Riduce l'intervallo (minimo 500ms)
+                        console.log(`Intervallo ridotto a: ${heartGenerationInterval}ms`);
+
+                        clearInterval(heartInterval);
+                        heartInterval = setInterval(() => {
+                            generateHeart();
+                            setTimeout(() => {
+                                if (Math.random() < 0.1) { // 80% di probabilità
+                                    generateHeart(); // Genera un altro cuore dopo 100ms
+                                }
+                            }, 100); // 100ms per il secondo cuore
+                        }, heartGenerationInterval
+                        );
+                    }
+                }
+            });
+        }
+
+        // Termina il gioco
+        function endGame() {
+            clearInterval(heartInterval);
+            clearInterval(collisionInterval);
+            gameStarted = false;
+            // Aggiorna il miglior punteggio se necessario
+            if (score > bestScore) {
+                updateBestScore();
+            }
+            alert(`Dai ${currentUser}, ce la puoi fare a superare ${currentUser === "Melania" ? "Anthony" : "Melania"}, sempre se non ce l'hai già fatta! Su, riprova!`);
+            startButton.textContent = "Riprova";
+            startButton.style.display = 'block';
+
+            loadScores();
+            // Rimuove eventuali cuori rimasti
+            document.querySelectorAll('.heart').forEach(heart => heart.remove());
+        }
+
+        // Muove il cestino in base alla posizione del mouse o del tocco
+        function moveBasket(clientX) {
+            const basketWidth = basket.offsetWidth;
+            const containerRect = gameContainer.getBoundingClientRect();
+            let relativeX = clientX - containerRect.left;
+            const containerWidth = gameContainer.offsetWidth;
+            if (relativeX - basketWidth / 2 < 0) {
+                relativeX = basketWidth / 2;
+            }
+            if (relativeX + basketWidth / 2 > containerWidth) {
+                relativeX = containerWidth - basketWidth / 2;
+            }
+            basket.style.left = `${relativeX - basketWidth / 2}px`;
+        }
+
+        // Avvia il gioco
+        function startGame() {
+            if (!gameStarted) {
+                gameStarted = true;
+                score = 0;
+                scoreDisplay.textContent = `Punti: ${score}`;
+                startButton.style.display = 'none';
+                heartInterval = setInterval(() => {
+                    const randomChance = Math.random(); // Genera un numero casuale tra 0 e 1
+                    if (randomChance < 0.8) { // 50% di probabilità
+                        generateHeart();
+                        setTimeout(() => {
+                            if (Math.random() < 0.1) { // 80% di probabilità
+                                generateHeart(); // Genera un altro cuore dopo 100ms
+                            }
+                        }, 100); // 100ms per il secondo cuore
+                    }
+                }, heartGenerationInterval);
+                collisionInterval = setInterval(checkCollision, 50); // controlla le collisioni ogni 50ms
+            }
+        }
+
+        startButton.addEventListener('click', startGame);
+
+        // Eventi per desktop
+        document.addEventListener('mousemove', e => {
+            moveBasket(e.clientX);
+        });
+
+        // Eventi per mobile
+        document.addEventListener('touchmove', e => {
+            const touch = e.touches[0];
+            moveBasket(touch.clientX);
+        });
+
+        chooseUser();
+
+    </script>
 </body>
+
 </html>

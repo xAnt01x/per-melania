@@ -267,14 +267,10 @@
                             .catch((error) => {
                                 console.error(`Errore nell'aggiornamento del punteggio per ${currentUser}:`, error);
                             });
-                        currentBestScore = score; // Aggiorna la variabile del miglior punteggio
+                        bestScore = score; // Aggiorna la variabile del miglior punteggio
                     }
 
-                    // Trova l'elemento giusto in base all'utente e aggiorna il testo
-                    const bestScoreDisplay = document.getElementById(`best-${currentUser.toLowerCase()}`);
-                    if (bestScoreDisplay) {
-                        bestScoreDisplay.textContent = `${currentUser} - Miglior punteggio: ${currentBestScore}`;
-                    }
+                    loadScores();
                 })
                 .catch((error) => {
                     console.error(`Errore nel recupero dei dati per ${currentUser}:`, error);
@@ -367,14 +363,13 @@
             clearInterval(collisionInterval);
             gameStarted = false;
             // Aggiorna il miglior punteggio se necessario
-            if (score > bestScore) {
-                updateBestScore();
-            }
             alert(`Dai ${currentUser}, ce la puoi fare a superare ${currentUser === "Melania" ? "Anthony" : "Melania"}, sempre se non ce l'hai già fatta! Su, riprova!`);
             startButton.textContent = "Riprova!";
             startButton.style.display = 'block';
-
-            loadScores();
+            if (score > bestScore) {
+                updateBestScore();
+            }
+            document.body.classList.remove("no-scroll");
             document.getElementById('info-container').style.display = 'flex';
             // Rimuove eventuali cuori rimasti
             document.querySelectorAll('.heart').forEach(heart => heart.remove());
@@ -400,6 +395,7 @@
             if (!gameStarted) {
                 gameStarted = true;
                 document.getElementById('info-container').style.display = 'none';
+                document.body.classList.add("no-scroll");
                 score = 0;
                 scoreDisplay.textContent = `Punti: ${score}`;
                 startButton.style.display = 'none';

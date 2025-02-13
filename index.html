@@ -24,7 +24,6 @@
             flex-direction: column;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
         }
 
         #game-container {
@@ -395,6 +394,7 @@
             if (!gameStarted) {
                 gameStarted = true;
                 document.getElementById('info-container').style.display = 'none';
+                document.body.classList.add("no-scroll");
                 score = 0;
                 scoreDisplay.textContent = `Punti: ${score}`;
                 startButton.style.display = 'none';

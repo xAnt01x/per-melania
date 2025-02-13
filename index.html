@@ -39,6 +39,8 @@
             height: 60px;
             background-color: #ff4d4d;
             border-radius: 10px;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .heart {
@@ -82,7 +84,8 @@
 
         /* Stile per i bottoni di scelta giocatore */
         #choose-player-container {
-            margin-top: 50px;
+            margin-top: 10px;
+            gap: 20px;
             display: flex;
             flex-direction: row;
         }
@@ -146,8 +149,14 @@
     <div id="info-container"
         style="width: 48%; max-width: 600px; display: flex; flex-direction: column; align-items: center;">
         <div id="choose-player-container">
-            <button id="choose-anthony" class="player-button">Anthony</button>
-            <button id="choose-melania" class="player-button">Melania</button>
+            <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <button id="choose-anthony" class="player-button">Anthony</button>
+                <p style="margin: 0px; text-align: center;" id="anthony-last-access"></p>
+            </div>
+            <div>
+                <button id="choose-melania" class="player-button">Melania</button>
+                <p style="margin: 0px; text-align: center;" id="melania-last-access"></p>
+            </div>
         </div>
         <div style="width: 200%;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -208,6 +217,58 @@
             document.body.style.position = 'relative';
         }
 
+        async function saveLastAccess(userId) {
+            const userRef = doc(db, 'users', userId); // Riferimento al documento dell'utente
+            const lastAccessTime = new Date(); // Data/ora dell'ultimo accesso
+            console.log(lastAccessTime)
+
+            try {
+                await setDoc(userRef, {
+                    lastAccess: lastAccessTime
+                }, { merge: true }); // Merge per evitare di sovrascrivere altri dati
+                console.log(`Ultimo accesso di ${userId} salvato.`);
+            } catch (error) {
+                console.error('Errore durante il salvataggio dell\'ultimo accesso:', error);
+            }
+        }
+
+        async function getLastAccess(userId) {
+            const userRef = doc(db, 'users', userId); // Riferimento al documento dell'utente
+            const userDoc = await getDoc(userRef);
+
+            if (userDoc.exists()) {
+                const lastAccess = userDoc.data().lastAccess?.toDate(); // Converti il Timestamp in oggetto Date
+                if (lastAccess) {
+                    return lastAccess;
+                } else {
+                    console.log(`${userId} non ha un accesso salvato.`);
+                    return null;
+                }
+            } else {
+                console.log(`${userId} non trovato.`);
+                return null;
+            }
+        }
+
+        async function displayLastAccess() {
+            const melaniaLastAccess = await getLastAccess('Melania');
+            const anthonyLastAccess = await getLastAccess('Anthony');
+
+            if (melaniaLastAccess) {
+                document.getElementById('melania-last-access').textContent = `Ultimo accesso ${melaniaLastAccess.toLocaleString()}`;
+            } else {
+                console.log('Ultimo accesso di Melania non disponibile.');
+            }
+
+            if (anthonyLastAccess) {
+                document.getElementById('anthony-last-access').textContent = `Ultimo accesso ${anthonyLastAccess.toLocaleString()}`;
+            } else {
+                console.log('Ultimo accesso di Anthony non disponibile.');
+            }
+        }
+
+        displayLastAccess();
+
 
         function chooseUser() {
             // Mostra i bottoni per scegliere il giocatore
@@ -221,6 +282,7 @@
                 document.getElementById('choose-player-container').style.display = 'none'; // Nasconde i bottoni
                 startButton.style.display = 'block'; // Mostra il pulsante di inizio gioco
                 document.getElementById('current-user').textContent = `${currentUser}`; // Mostra il nome dell'utente scelto
+                saveLastAccess(currentUser);
             });
 
             document.getElementById('choose-melania').addEventListener('click', () => {
@@ -229,6 +291,7 @@
                 document.getElementById('choose-player-container').style.display = 'none'; // Nasconde i bottoni
                 startButton.style.display = 'block'; // Mostra il pulsante di inizio gioco
                 document.getElementById('current-user').textContent = `${currentUser}`; // Mostra il nome dell'utente scelto
+                saveLastAccess(currentUser);
             });
         }
 
@@ -378,6 +441,8 @@
                 updateBestScore();
             }
             document.getElementById('info-container').style.display = 'flex';
+            document.getElementById('basket').style.transform = 'translateX(-50%)';
+            document.getElementById('basket').style.left = '50%';
             // Rimuove eventuali cuori rimasti
             document.querySelectorAll('.heart').forEach(heart => heart.remove());
         }
@@ -401,6 +466,8 @@
         function startGame() {
             if (!gameStarted) {
                 gameStarted = true;
+                document.getElementById('basket').style.transform = 'none';
+                document.getElementById('basket').style.left = '0%';
                 document.getElementById('info-container').style.display = 'none';
                 disableScroll();
                 score = 0;
@@ -428,13 +495,17 @@
 
         // Eventi per desktop
         document.addEventListener('mousemove', e => {
-            moveBasket(e.clientX);
+            if (gameStarted) {
+                moveBasket(e.clientX);
+            }
         });
 
         // Eventi per mobile
         document.addEventListener('touchmove', e => {
-            const touch = e.touches[0];
-            moveBasket(touch.clientX);
+            if (gameStarted) {
+                const touch = e.touches[0];
+                moveBasket(touch.clientX);
+            }
         });
 
         chooseUser();

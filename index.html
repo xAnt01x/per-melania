@@ -466,6 +466,9 @@
         function startGame() {
             if (!gameStarted) {
                 gameStarted = true;
+                heartGenerationInterval = 1000;
+                clearInterval(heartInterval);
+                clearInterval(collisionInterval);
                 document.getElementById('basket').style.transform = 'none';
                 document.getElementById('basket').style.left = '0%';
                 document.getElementById('info-container').style.display = 'none';

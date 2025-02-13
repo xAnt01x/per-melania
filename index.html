@@ -64,6 +64,7 @@
         }
 
         #score {
+            margin-top: 10px;
             font-size: 1.5em;
             color: #ff4d4d;
         }
@@ -110,6 +111,7 @@
         @media (max-width: 768px) {
             #game-container {
                 width: 100%;
+                height: 80%;
                 /* Assicurati che occupi tutta la larghezza disponibile */
                 box-sizing: border-box;
                 /* Per evitare overflow non voluti */
@@ -144,7 +146,9 @@
     <div id="game-container">
         <div id="basket"></div>
     </div>
-    <div style="width: 50%; max-width: 600px; display: flex; flex-direction: column; align-items: center;">
+    <div id="score"></div>
+    <div id="info-container"
+        style="width: 50%; max-width: 600px; display: flex; flex-direction: column; align-items: center;">
         <div id="choose-player-container">
             <button id="choose-anthony" class="player-button">Anthony</button>
             <button id="choose-melania" class="player-button">Melania</button>
@@ -152,7 +156,6 @@
         <div style="width: 200%;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h1 id="current-user" style="margin: 0px; margin-top: 10px;"></h1>
-                <div id="score"></div>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                 <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -284,7 +287,7 @@
             const heart = document.createElement('div');
             heart.classList.add('heart');
             // Imposta un margine di 50px per evitare i bordi
-            const margin = 200;
+            const margin = 50;
             const availableWidth = gameContainer.offsetWidth - 2 * margin;
             heart.style.left = `${margin + Math.random() * availableWidth}px`;
             heart.textContent = "❤️";
@@ -309,24 +312,24 @@
             const hearts = document.querySelectorAll('.heart');
 
             hearts.forEach(heart => {
-                const tolerance = 30;
-
+                const tolerancex = 0;
+                const tolerancey = 15;
                 const heartRect = heart.getBoundingClientRect();
                 const basketRect = basket.getBoundingClientRect();
 
                 const expandedBasketRect = {
-                    top: basketRect.top,
+                    top: basketRect.top + tolerancey,
                     bottom: basketRect.bottom,
-                    left: basketRect.left - tolerance,
-                    right: basketRect.right + tolerance
+                    left: basketRect.left - tolerancex,
+                    right: basketRect.right + tolerancex
                 };
 
                 // Verifica la collisione con la zona di tolleranza espansa
                 const isOverlapping =
                     heartRect.bottom >= expandedBasketRect.top &&
                     heartRect.top <= expandedBasketRect.bottom &&
-                    heartRect.left >= expandedBasketRect.left &&
-                    heartRect.right <= expandedBasketRect.right;
+                    heartRect.left <= expandedBasketRect.right &&
+                    heartRect.right >= expandedBasketRect.left;
 
                 if (isOverlapping) {
                     score++;
@@ -372,6 +375,7 @@
             startButton.style.display = 'block';
 
             loadScores();
+            document.getElementById('info-container').style.display = 'flex';
             // Rimuove eventuali cuori rimasti
             document.querySelectorAll('.heart').forEach(heart => heart.remove());
         }
@@ -395,6 +399,7 @@
         function startGame() {
             if (!gameStarted) {
                 gameStarted = true;
+                document.getElementById('info-container').style.display = 'none';
                 score = 0;
                 scoreDisplay.textContent = `Punti: ${score}`;
                 startButton.style.display = 'none';
@@ -413,7 +418,10 @@
             }
         }
 
-        startButton.addEventListener('click', startGame);
+        startButton.addEventListener('click', () => {
+            startGame();
+        }
+        );
 
         // Eventi per desktop
         document.addEventListener('mousemove', e => {

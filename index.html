@@ -304,7 +304,7 @@
             });
 
             // Regola la durata dell'animazione: ogni 10 punti diminuisce di 0.5s, con un minimo di 1s
-            const fallDuration = Math.max(3 - Math.floor(score / 10) * 0.5, 1);
+            const fallDuration = Math.max(3 - Math.floor(score / 5) * 0.5, 1);
             heart.style.animationDuration = fallDuration + "s";
 
             gameContainer.appendChild(heart);
@@ -345,15 +345,15 @@
                     heartCount++; // Incrementa il contatore di cuori
 
                     // Ogni 10 cuori, riduci la velocità di generazione (aumenta la frequenza)
-                    if (heartCount % 10 === 0) {
-                        heartGenerationInterval = Math.max(300, heartGenerationInterval - 100); // Riduce l'intervallo (minimo 500ms)
+                    if (heartCount % 5 === 0) {
+                        heartGenerationInterval = Math.max(200, heartGenerationInterval - 100); // Riduce l'intervallo (minimo 500ms)
                         console.log(`Intervallo ridotto a: ${heartGenerationInterval}ms`);
 
                         clearInterval(heartInterval);
                         heartInterval = setInterval(() => {
                             generateHeart();
                             setTimeout(() => {
-                                if (Math.random() < 0.1) { // 80% di probabilità
+                                if (Math.random() < 0.2) { // 80% di probabilità
                                     generateHeart(); // Genera un altro cuore dopo 100ms
                                 }
                             }, 100); // 100ms per il secondo cuore
@@ -411,7 +411,7 @@
                     if (randomChance < 0.8) { // 50% di probabilità
                         generateHeart();
                         setTimeout(() => {
-                            if (Math.random() < 0.1) { // 80% di probabilità
+                            if (Math.random() < 0.2) { // 80% di probabilità
                                 generateHeart(); // Genera un altro cuore dopo 100ms
                             }
                         }, 100); // 100ms per il secondo cuore

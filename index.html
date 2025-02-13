@@ -197,6 +197,16 @@
         let heartCount = 0;
         let heartGenerationInterval = 1000;
 
+        function disableScroll() {
+            document.body.style.overflow = 'hidden';
+        }
+
+        function enableScroll() {
+            document.body.style.overflow = 'auto';
+            document.body.style.position = 'relative';
+        }
+
+
         function chooseUser() {
             // Mostra i bottoni per scegliere il giocatore
             document.getElementById('choose-player-container').style.display = 'flex';
@@ -361,10 +371,10 @@
             alert(`Dai ${currentUser}, ce la puoi fare a superare ${currentUser === "Melania" ? "Anthony" : "Melania"}, sempre se non ce l'hai già fatta! Su, riprova!`);
             startButton.textContent = "Riprova!";
             startButton.style.display = 'block';
+            enableScroll();
             if (score > bestScore) {
                 updateBestScore();
             }
-            document.body.classList.remove("no-scroll");
             document.getElementById('info-container').style.display = 'flex';
             // Rimuove eventuali cuori rimasti
             document.querySelectorAll('.heart').forEach(heart => heart.remove());
@@ -390,7 +400,7 @@
             if (!gameStarted) {
                 gameStarted = true;
                 document.getElementById('info-container').style.display = 'none';
-                document.body.classList.add("no-scroll");
+                disableScroll();
                 score = 0;
                 scoreDisplay.textContent = `Punti: ${score}`;
                 startButton.style.display = 'none';
